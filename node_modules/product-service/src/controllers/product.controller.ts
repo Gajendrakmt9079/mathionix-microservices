@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ProductService } from '../services/product.service';
 import { CreateProductDto } from '../dto/create-product.dto';
@@ -57,5 +58,51 @@ export class ProductController {
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
+  }
+
+  // TCP Message Handlers for microservice communication
+  @MessagePattern({ cmd: 'get_all_products' })
+  async getAllProducts(): Promise<Product[]> {
+    return this.productService.findAll();
+  }
+
+  @MessagePattern({ cmd: 'get_products_with_filters' })
+  async getProductsWithFilters(@Payload() filters: {
+    search?: string;
+    startDate?: string;
+    endDate?: string;
+    category?: string;
+    brand?: string;
+    status?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    isFeatured?: boolean;
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    data: Product[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  }> {
+    return this.productService.findAllWithFilters(filters);
+  }
+
+  @MessagePattern({ cmd: 'search_by_date_range' })
+  async searchByDateRange(@Payload() data: { startDate: string; endDate: string }): Promise<Product[]> {
+    return this.productService.searchByDateRange(data.startDate, data.endDate);
+  }
+
+  @MessagePattern({ cmd: 'search_by_text' })
+  async searchByText(@Payload() data: { searchTerm: string }): Promise<Product[]> {
+    return this.productService.searchByText(data.searchTerm);
+  }
+
+  @MessagePattern({ cmd: 'create_product' })
+  async createProduct(@Payload() createProductDto: CreateProductDto): Promise<Product> {
+    return this.productService.create(createProductDto);
   }
 } 

@@ -13,7 +13,7 @@ exports.QueryFiltersDto = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
 const class_transformer_1 = require("class-transformer");
-const product_schema_1 = require("../schemas/product.schema");
+const product_interface_1 = require("../interfaces/product.interface");
 class QueryFiltersDto {
     constructor() {
         this.page = 1;
@@ -24,11 +24,11 @@ exports.QueryFiltersDto = QueryFiltersDto;
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'Product category filter',
-        enum: product_schema_1.ProductCategory,
-        example: product_schema_1.ProductCategory.ELECTRONICS
+        enum: product_interface_1.ProductCategory,
+        example: product_interface_1.ProductCategory.ELECTRONICS
     }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEnum)(product_schema_1.ProductCategory),
+    (0, class_validator_1.IsEnum)(product_interface_1.ProductCategory),
     __metadata("design:type", String)
 ], QueryFiltersDto.prototype, "category", void 0);
 __decorate([
@@ -43,11 +43,11 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiPropertyOptional)({
         description: 'Product status filter',
-        enum: product_schema_1.ProductStatus,
-        example: product_schema_1.ProductStatus.ACTIVE
+        enum: product_interface_1.ProductStatus,
+        example: product_interface_1.ProductStatus.ACTIVE
     }),
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEnum)(product_schema_1.ProductStatus),
+    (0, class_validator_1.IsEnum)(product_interface_1.ProductStatus),
     __metadata("design:type", String)
 ], QueryFiltersDto.prototype, "status", void 0);
 __decorate([

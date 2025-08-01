@@ -1,4 +1,4 @@
-import { ProductCategory, ProductStatus } from '../schemas/product.schema';
+import { ProductCategory, ProductStatus } from '../interfaces/product.interface';
 export declare class QueryFiltersDto {
     category?: ProductCategory;
     brand?: string;

@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductController = void 0;
 const common_1 = require("@nestjs/common");
+const microservices_1 = require("@nestjs/microservices");
 const swagger_1 = require("@nestjs/swagger");
 const product_service_1 = require("../services/product.service");
 const create_product_dto_1 = require("../dto/create-product.dto");
@@ -49,6 +50,21 @@ let ProductController = class ProductController {
             throw new common_1.HttpException(error.message || 'Failed to fetch products', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    async getAllProducts() {
+        return this.productService.findAll();
+    }
+    async getProductsWithFilters(filters) {
+        return this.productService.findAllWithFilters(filters);
+    }
+    async searchByDateRange(data) {
+        return this.productService.searchByDateRange(data.startDate, data.endDate);
+    }
+    async searchByText(data) {
+        return this.productService.searchByText(data.searchTerm);
+    }
+    async createProduct(createProductDto) {
+        return this.productService.create(createProductDto);
+    }
 };
 exports.ProductController = ProductController;
 __decorate([
@@ -73,6 +89,40 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ProductController.prototype, "findAll", null);
+__decorate([
+    (0, microservices_1.MessagePattern)({ cmd: 'get_all_products' }),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ProductController.prototype, "getAllProducts", null);
+__decorate([
+    (0, microservices_1.MessagePattern)({ cmd: 'get_products_with_filters' }),
+    __param(0, (0, microservices_1.Payload)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ProductController.prototype, "getProductsWithFilters", null);
+__decorate([
+    (0, microservices_1.MessagePattern)({ cmd: 'search_by_date_range' }),
+    __param(0, (0, microservices_1.Payload)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ProductController.prototype, "searchByDateRange", null);
+__decorate([
+    (0, microservices_1.MessagePattern)({ cmd: 'search_by_text' }),
+    __param(0, (0, microservices_1.Payload)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ProductController.prototype, "searchByText", null);
+__decorate([
+    (0, microservices_1.MessagePattern)({ cmd: 'create_product' }),
+    __param(0, (0, microservices_1.Payload)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [create_product_dto_1.CreateProductDto]),
+    __metadata("design:returntype", Promise)
+], ProductController.prototype, "createProduct", null);
 exports.ProductController = ProductController = __decorate([
     (0, swagger_1.ApiTags)('products'),
     (0, common_1.Controller)('products'),

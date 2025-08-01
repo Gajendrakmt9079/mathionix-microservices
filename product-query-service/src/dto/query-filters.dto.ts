@@ -1,7 +1,7 @@
 import { IsOptional, IsString, IsNumber, IsBoolean, IsDateString, Min, Max, IsEnum } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
-import { ProductCategory, ProductStatus } from '../schemas/product.schema';
+import { ProductCategory, ProductStatus } from '../interfaces/product.interface';
 
 export class QueryFiltersDto {
   @ApiPropertyOptional({

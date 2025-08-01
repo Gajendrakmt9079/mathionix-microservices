@@ -14,23 +14,21 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductQueryService = void 0;
 const common_1 = require("@nestjs/common");
-const mongoose_1 = require("@nestjs/mongoose");
-const mongoose_2 = require("mongoose");
-const product_schema_1 = require("../schemas/product.schema");
+const microservices_1 = require("@nestjs/microservices");
 let ProductQueryService = class ProductQueryService {
-    constructor(productModel) {
-        this.productModel = productModel;
+    constructor(productServiceClient) {
+        this.productServiceClient = productServiceClient;
     }
     async getAllProducts(page = 1, limit = 10) {
         try {
-            const skip = (page - 1) * limit;
-            const [products, total] = await Promise.all([
-                this.productModel.find().skip(skip).limit(limit).exec(),
-                this.productModel.countDocuments().exec()
-            ]);
+            const products = await this.productServiceClient.send({ cmd: 'get_all_products' }, {}).toPromise();
+            const startIndex = (page - 1) * limit;
+            const endIndex = startIndex + limit;
+            const paginatedProducts = products.slice(startIndex, endIndex);
+            const total = products.length;
             const totalPages = Math.ceil(total / limit);
             return {
-                data: products,
+                data: paginatedProducts,
                 total,
                 page,
                 limit,
@@ -40,79 +38,60 @@ let ProductQueryService = class ProductQueryService {
             };
         }
         catch (error) {
-            console.error('Error fetching all products:', error);
-            throw new Error('Failed to fetch products from database');
+            console.error('Error fetching all products via TCP:', error);
+            throw new Error('Failed to fetch products from Product Service');
         }
     }
     async searchProducts(filters) {
         try {
-            const query = {};
-            if (filters.search) {
-                query.$or = [
-                    { name: { $regex: filters.search, $options: 'i' } },
-                    { description: { $regex: filters.search, $options: 'i' } },
-                    { brand: { $regex: filters.search, $options: 'i' } },
-                    { sku: { $regex: filters.search, $options: 'i' } },
-                    { tags: { $in: [new RegExp(filters.search, 'i')] } }
-                ];
-            }
-            if (filters.category) {
-                query.category = filters.category;
-            }
-            if (filters.brand) {
-                query.brand = { $regex: filters.brand, $options: 'i' };
-            }
-            if (filters.status) {
-                query.status = filters.status;
-            }
-            if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
-                query.price = {};
-                if (filters.minPrice !== undefined) {
-                    query.price.$gte = filters.minPrice;
-                }
-                if (filters.maxPrice !== undefined) {
-                    query.price.$lte = filters.maxPrice;
-                }
-            }
-            if (filters.isFeatured !== undefined) {
-                query.isFeatured = filters.isFeatured;
-            }
-            if (filters.startDate || filters.endDate) {
-                query.createdAt = {};
-                if (filters.startDate) {
-                    query.createdAt.$gte = new Date(filters.startDate);
-                }
-                if (filters.endDate) {
-                    query.createdAt.$lte = new Date(filters.endDate);
-                }
-            }
-            const { page = 1, limit = 10 } = filters;
-            const skip = (page - 1) * limit;
-            const [products, total] = await Promise.all([
-                this.productModel.find(query).skip(skip).limit(limit).exec(),
-                this.productModel.countDocuments(query).exec()
-            ]);
-            const totalPages = Math.ceil(total / limit);
-            return {
-                data: products,
-                total,
-                page,
-                limit,
-                totalPages,
-                hasNext: page < totalPages,
-                hasPrev: page > 1,
-            };
+            const result = await this.productServiceClient.send({ cmd: 'get_products_with_filters' }, {
+                search: filters.search,
+                startDate: filters.startDate,
+                endDate: filters.endDate,
+                category: filters.category,
+                brand: filters.brand,
+                status: filters.status,
+                minPrice: filters.minPrice,
+                maxPrice: filters.maxPrice,
+                isFeatured: filters.isFeatured,
+                page: filters.page || 1,
+                limit: filters.limit || 10
+            }).toPromise();
+            return result;
         }
         catch (error) {
-            console.error('Error searching products:', error);
-            throw new Error('Failed to search products from database');
+            console.error('Error searching products via TCP:', error);
+            throw new Error('Failed to search products from Product Service');
+        }
+    }
+    async searchByDateRange(startDate, endDate) {
+        try {
+            return await this.productServiceClient.send({ cmd: 'search_by_date_range' }, {
+                startDate,
+                endDate
+            }).toPromise();
+        }
+        catch (error) {
+            console.error('Error searching by date range via TCP:', error);
+            throw new Error('Failed to search by date range from Product Service');
+        }
+    }
+    async searchByText(searchTerm) {
+        try {
+            return await this.productServiceClient.send({ cmd: 'search_by_text' }, {
+                searchTerm
+            }).toPromise();
+        }
+        catch (error) {
+            console.error('Error searching by text via TCP:', error);
+            throw new Error('Failed to search by text from Product Service');
         }
     }
 };
 exports.ProductQueryService = ProductQueryService;
 exports.ProductQueryService = ProductQueryService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, mongoose_1.InjectModel)(product_schema_1.Product.name)),
-    __metadata("design:paramtypes", [mongoose_2.Model])
+    __param(0, (0, common_1.Inject)('PRODUCT_SERVICE')),
+    __metadata("design:paramtypes", [microservices_1.ClientProxy])
 ], ProductQueryService);
 //# sourceMappingURL=product-query.service.js.map

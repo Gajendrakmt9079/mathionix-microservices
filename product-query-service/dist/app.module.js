@@ -9,10 +9,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
-const mongoose_1 = require("@nestjs/mongoose");
+const microservices_1 = require("@nestjs/microservices");
 const product_query_controller_1 = require("./controllers/product-query.controller");
 const product_query_service_1 = require("./services/product-query.service");
-const product_schema_1 = require("./schemas/product.schema");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -22,8 +21,16 @@ exports.AppModule = AppModule = __decorate([
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
             }),
-            mongoose_1.MongooseModule.forRoot('mongodb://127.0.0.1:27017/product-query-service?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2'),
-            mongoose_1.MongooseModule.forFeature([{ name: product_schema_1.Product.name, schema: product_schema_1.ProductSchema }]),
+            microservices_1.ClientsModule.register([
+                {
+                    name: 'PRODUCT_SERVICE',
+                    transport: microservices_1.Transport.TCP,
+                    options: {
+                        host: 'localhost',
+                        port: 3002,
+                    },
+                },
+            ]),
         ],
         controllers: [product_query_controller_1.ProductQueryController],
         providers: [product_query_service_1.ProductQueryService],

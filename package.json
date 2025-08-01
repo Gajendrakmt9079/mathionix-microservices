@@ -13,9 +13,8 @@
     "start:query": "npm run start:dev --workspace=product-query-service",
     "dev:product": "npm run start:dev --workspace=product-service",
     "dev:query": "npm run start:dev --workspace=product-query-service",
-    "start:all": "node start-services.js",
     "test": "npm run test --workspaces",
-    "test:api": "node test-api.js"
+    "test:tcp": "node test-tcp-communication.js"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

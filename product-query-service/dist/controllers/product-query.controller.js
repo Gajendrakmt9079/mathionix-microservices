@@ -48,6 +48,34 @@ let ProductQueryController = class ProductQueryController {
             throw new common_1.HttpException(error.message || "Failed to search products", common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    async searchByDateRange(startDate, endDate) {
+        try {
+            if (!startDate || !endDate) {
+                throw new common_1.HttpException("Both startDate and endDate are required", common_1.HttpStatus.BAD_REQUEST);
+            }
+            return await this.productQueryService.searchByDateRange(startDate, endDate);
+        }
+        catch (error) {
+            if (error instanceof common_1.HttpException) {
+                throw error;
+            }
+            throw new common_1.HttpException(error.message || "Failed to search by date range", common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    async searchByText(searchTerm) {
+        try {
+            if (!searchTerm || searchTerm.trim().length === 0) {
+                throw new common_1.HttpException("Search term is required", common_1.HttpStatus.BAD_REQUEST);
+            }
+            return await this.productQueryService.searchByText(searchTerm);
+        }
+        catch (error) {
+            if (error instanceof common_1.HttpException) {
+                throw error;
+            }
+            throw new common_1.HttpException(error.message || "Failed to search by text", common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 };
 exports.ProductQueryController = ProductQueryController;
 __decorate([
@@ -160,6 +188,47 @@ __decorate([
     __metadata("design:paramtypes", [query_filters_dto_1.QueryFiltersDto]),
     __metadata("design:returntype", Promise)
 ], ProductQueryController.prototype, "searchProducts", null);
+__decorate([
+    (0, common_1.Get)("date-range"),
+    (0, swagger_1.ApiOperation)({ summary: "Search products by date range (TCP call to Product Service)" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Products found successfully" }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: "Date parameters are required" }),
+    (0, swagger_1.ApiResponse)({ status: 500, description: "Internal server error" }),
+    (0, swagger_1.ApiQuery)({
+        name: "startDate",
+        description: "Start date (ISO string)",
+        example: "2024-01-01T00:00:00.000Z",
+        required: true,
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: "endDate",
+        description: "End date (ISO string)",
+        example: "2024-12-31T23:59:59.999Z",
+        required: true,
+    }),
+    __param(0, (0, common_1.Query)("startDate")),
+    __param(1, (0, common_1.Query)("endDate")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], ProductQueryController.prototype, "searchByDateRange", null);
+__decorate([
+    (0, common_1.Get)("text-search"),
+    (0, swagger_1.ApiOperation)({ summary: "Search products by text (TCP call to Product Service)" }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: "Products found successfully" }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: "Search term is required" }),
+    (0, swagger_1.ApiResponse)({ status: 500, description: "Internal server error" }),
+    (0, swagger_1.ApiQuery)({
+        name: "q",
+        description: "Search term",
+        example: "iPhone",
+        required: true,
+    }),
+    __param(0, (0, common_1.Query)("q")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ProductQueryController.prototype, "searchByText", null);
 exports.ProductQueryController = ProductQueryController = __decorate([
     (0, swagger_1.ApiTags)("product-query"),
     (0, common_1.Controller)("product-query"),

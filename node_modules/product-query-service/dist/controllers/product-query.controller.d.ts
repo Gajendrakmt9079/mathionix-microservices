@@ -6,4 +6,6 @@ export declare class ProductQueryController {
     constructor(productQueryService: ProductQueryService);
     getAllProducts(page?: string, limit?: string): Promise<PaginatedProductsResponse>;
     searchProducts(filters: QueryFiltersDto): Promise<PaginatedProductsResponse>;
+    searchByDateRange(startDate: string, endDate: string): Promise<import("../interfaces/product.interface").Product[]>;
+    searchByText(searchTerm: string): Promise<import("../interfaces/product.interface").Product[]>;
 }

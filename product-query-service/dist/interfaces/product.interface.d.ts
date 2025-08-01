@@ -1,4 +1,19 @@
-import { ProductCategory, ProductStatus } from '../schemas/product.schema';
+export declare enum ProductCategory {
+    ELECTRONICS = "electronics",
+    CLOTHING = "clothing",
+    BOOKS = "books",
+    HOME = "home",
+    SPORTS = "sports",
+    FOOD = "food",
+    BEAUTY = "beauty",
+    AUTOMOTIVE = "automotive"
+}
+export declare enum ProductStatus {
+    ACTIVE = "active",
+    INACTIVE = "inactive",
+    DISCONTINUED = "discontinued",
+    OUT_OF_STOCK = "out_of_stock"
+}
 export interface Product {
     _id?: any;
     id?: string;
