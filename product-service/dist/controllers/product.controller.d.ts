@@ -6,34 +6,13 @@ export declare class ProductController {
     constructor(productService: ProductService);
     create(createProductDto: CreateProductDto): Promise<Product>;
     findAll(): Promise<Product[]>;
+    searchByFilters(category?: string, name?: string, startDate?: string, endDate?: string): Promise<Product[]>;
     getAllProducts(): Promise<Product[]>;
-    getProductsWithFilters(filters: {
-        search?: string;
+    searchProducts(filters: {
+        category?: string;
+        name?: string;
         startDate?: string;
         endDate?: string;
-        category?: string;
-        brand?: string;
-        status?: string;
-        minPrice?: number;
-        maxPrice?: number;
-        isFeatured?: boolean;
-        page?: number;
-        limit?: number;
-    }): Promise<{
-        data: Product[];
-        total: number;
-        page: number;
-        limit: number;
-        totalPages: number;
-        hasNext: boolean;
-        hasPrev: boolean;
-    }>;
-    searchByDateRange(data: {
-        startDate: string;
-        endDate: string;
-    }): Promise<Product[]>;
-    searchByText(data: {
-        searchTerm: string;
     }): Promise<Product[]>;
     createProduct(createProductDto: CreateProductDto): Promise<Product>;
 }

@@ -50,20 +50,57 @@ let ProductController = class ProductController {
             throw new common_1.HttpException(error.message || 'Failed to fetch products', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    async searchByFilters(category, name, startDate, endDate) {
+        try {
+            return await this.productService.searchByFilters({
+                category,
+                name,
+                startDate,
+                endDate
+            });
+        }
+        catch (error) {
+            if (error instanceof common_1.HttpException) {
+                throw error;
+            }
+            throw new common_1.HttpException(error.message || 'Failed to search products', common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
     async getAllProducts() {
-        return this.productService.findAll();
+        console.log('🔍 Product Service: Received TCP request for get_all_products');
+        try {
+            const result = await this.productService.findAll();
+            console.log(`✅ Product Service: Returning ${result.length} products via TCP`);
+            return result;
+        }
+        catch (error) {
+            console.error('❌ Product Service: Error in get_all_products TCP handler:', error);
+            throw error;
+        }
     }
-    async getProductsWithFilters(filters) {
-        return this.productService.findAllWithFilters(filters);
-    }
-    async searchByDateRange(data) {
-        return this.productService.searchByDateRange(data.startDate, data.endDate);
-    }
-    async searchByText(data) {
-        return this.productService.searchByText(data.searchTerm);
+    async searchProducts(filters) {
+        console.log('🔍 Product Service: Received TCP request for search_products with filters:', filters);
+        try {
+            const result = await this.productService.searchByFilters(filters);
+            console.log(`✅ Product Service: Returning ${result.length} products via TCP search`);
+            return result;
+        }
+        catch (error) {
+            console.error('❌ Product Service: Error in search_products TCP handler:', error);
+            throw error;
+        }
     }
     async createProduct(createProductDto) {
-        return this.productService.create(createProductDto);
+        console.log('🔍 Product Service: Received TCP request for create_product');
+        try {
+            const result = await this.productService.create(createProductDto);
+            console.log('✅ Product Service: Product created successfully via TCP');
+            return result;
+        }
+        catch (error) {
+            console.error('❌ Product Service: Error in create_product TCP handler:', error);
+            throw error;
+        }
     }
 };
 exports.ProductController = ProductController;
@@ -90,32 +127,36 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ProductController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)('search'),
+    (0, swagger_1.ApiOperation)({ summary: 'Search products by category, name, and date range' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Products found successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Bad request' }),
+    (0, swagger_1.ApiResponse)({ status: 500, description: 'Internal server error' }),
+    (0, swagger_1.ApiQuery)({ name: 'category', required: false, description: 'Product category' }),
+    (0, swagger_1.ApiQuery)({ name: 'name', required: false, description: 'Search by product name, description, or brand' }),
+    (0, swagger_1.ApiQuery)({ name: 'startDate', required: false, description: 'Start date (ISO string)' }),
+    (0, swagger_1.ApiQuery)({ name: 'endDate', required: false, description: 'End date (ISO string)' }),
+    __param(0, (0, common_1.Query)('category')),
+    __param(1, (0, common_1.Query)('name')),
+    __param(2, (0, common_1.Query)('startDate')),
+    __param(3, (0, common_1.Query)('endDate')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:returntype", Promise)
+], ProductController.prototype, "searchByFilters", null);
+__decorate([
     (0, microservices_1.MessagePattern)({ cmd: 'get_all_products' }),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], ProductController.prototype, "getAllProducts", null);
 __decorate([
-    (0, microservices_1.MessagePattern)({ cmd: 'get_products_with_filters' }),
+    (0, microservices_1.MessagePattern)({ cmd: 'search_products' }),
     __param(0, (0, microservices_1.Payload)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
-], ProductController.prototype, "getProductsWithFilters", null);
-__decorate([
-    (0, microservices_1.MessagePattern)({ cmd: 'search_by_date_range' }),
-    __param(0, (0, microservices_1.Payload)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], ProductController.prototype, "searchByDateRange", null);
-__decorate([
-    (0, microservices_1.MessagePattern)({ cmd: 'search_by_text' }),
-    __param(0, (0, microservices_1.Payload)()),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
-], ProductController.prototype, "searchByText", null);
+], ProductController.prototype, "searchProducts", null);
 __decorate([
     (0, microservices_1.MessagePattern)({ cmd: 'create_product' }),
     __param(0, (0, microservices_1.Payload)()),

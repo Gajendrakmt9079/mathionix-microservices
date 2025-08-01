@@ -19,72 +19,33 @@ let ProductQueryService = class ProductQueryService {
     constructor(productServiceClient) {
         this.productServiceClient = productServiceClient;
     }
-    async getAllProducts(page = 1, limit = 10) {
+    async getAllProducts() {
         try {
-            const products = await this.productServiceClient.send({ cmd: 'get_all_products' }, {}).toPromise();
-            const startIndex = (page - 1) * limit;
-            const endIndex = startIndex + limit;
-            const paginatedProducts = products.slice(startIndex, endIndex);
-            const total = products.length;
-            const totalPages = Math.ceil(total / limit);
-            return {
-                data: paginatedProducts,
-                total,
-                page,
-                limit,
-                totalPages,
-                hasNext: page < totalPages,
-                hasPrev: page > 1,
-            };
+            console.log('🔍 Query Service: Making TCP call to get all products...');
+            const result = await this.productServiceClient.send({ cmd: 'get_all_products' }, {}).toPromise();
+            console.log('✅ Query Service: Successfully received products via TCP');
+            return result;
         }
         catch (error) {
-            console.error('Error fetching all products via TCP:', error);
-            throw new Error('Failed to fetch products from Product Service');
+            console.error('❌ Query Service: Error fetching all products via TCP:', error);
+            throw new Error(`Failed to fetch products from Product Service: ${error.message}`);
         }
     }
     async searchProducts(filters) {
         try {
-            const result = await this.productServiceClient.send({ cmd: 'get_products_with_filters' }, {
-                search: filters.search,
-                startDate: filters.startDate,
-                endDate: filters.endDate,
+            console.log('🔍 Query Service: Making TCP call to search products with filters:', filters);
+            const result = await this.productServiceClient.send({ cmd: 'search_products' }, {
                 category: filters.category,
-                brand: filters.brand,
-                status: filters.status,
-                minPrice: filters.minPrice,
-                maxPrice: filters.maxPrice,
-                isFeatured: filters.isFeatured,
-                page: filters.page || 1,
-                limit: filters.limit || 10
+                name: filters.name,
+                startDate: filters.startDate,
+                endDate: filters.endDate
             }).toPromise();
+            console.log('✅ Query Service: Successfully received search results via TCP');
             return result;
         }
         catch (error) {
-            console.error('Error searching products via TCP:', error);
-            throw new Error('Failed to search products from Product Service');
-        }
-    }
-    async searchByDateRange(startDate, endDate) {
-        try {
-            return await this.productServiceClient.send({ cmd: 'search_by_date_range' }, {
-                startDate,
-                endDate
-            }).toPromise();
-        }
-        catch (error) {
-            console.error('Error searching by date range via TCP:', error);
-            throw new Error('Failed to search by date range from Product Service');
-        }
-    }
-    async searchByText(searchTerm) {
-        try {
-            return await this.productServiceClient.send({ cmd: 'search_by_text' }, {
-                searchTerm
-            }).toPromise();
-        }
-        catch (error) {
-            console.error('Error searching by text via TCP:', error);
-            throw new Error('Failed to search by text from Product Service');
+            console.error('❌ Query Service: Error searching products via TCP:', error);
+            throw new Error(`Failed to search products from Product Service: ${error.message}`);
         }
     }
 };

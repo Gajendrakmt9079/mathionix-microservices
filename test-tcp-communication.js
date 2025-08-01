@@ -94,6 +94,20 @@ async function testProductService() {
       console.log('   ❌ Failed to get products:', error.response?.data?.message || error.message);
     }
 
+    // Test 3: Search products
+    console.log('\n3. Searching products...');
+    try {
+      const response = await axios.get(`${PRODUCT_SERVICE_URL}/products/search`, {
+        params: {
+          category: 'electronics',
+          name: 'iPhone'
+        }
+      });
+      console.log(`   ✅ Found ${response.data.length} products matching search criteria`);
+    } catch (error) {
+      console.log('   ❌ Failed to search products:', error.response?.data?.message || error.message);
+    }
+
   } catch (error) {
     console.log('❌ Product Service test failed:', error.message);
   }
@@ -106,74 +120,66 @@ async function testQueryServiceTCP() {
     // Test 1: Get all products via TCP
     console.log('1. Getting all products via TCP...');
     try {
-      const response = await axios.get(`${QUERY_SERVICE_URL}/product-query?page=1&limit=10`);
-      console.log(`   ✅ Found ${response.data.data.length} products (Total: ${response.data.total})`);
-      console.log(`   📊 Pagination: Page ${response.data.page}/${response.data.totalPages}`);
+      const response = await axios.get(`${QUERY_SERVICE_URL}/product-query`);
+      console.log(`   ✅ Found ${response.data.length} products via TCP`);
     } catch (error) {
       console.log('   ❌ Failed to get products via TCP:', error.response?.data?.message || error.message);
     }
 
-    // Test 2: Search with filters via TCP
-    console.log('\n2. Searching products with filters via TCP...');
+    // Test 2: Search with category filter via TCP
+    console.log('\n2. Searching products by category via TCP...');
     try {
       const response = await axios.get(`${QUERY_SERVICE_URL}/product-query/search`, {
         params: {
-          search: 'iPhone',
-          category: 'electronics',
-          minPrice: 500,
-          maxPrice: 1000,
-          isFeatured: true,
-          page: 1,
-          limit: 5
+          category: 'electronics'
         }
       });
-      console.log(`   ✅ Found ${response.data.data.length} products matching filters`);
-      console.log(`   📊 Pagination: Page ${response.data.page}/${response.data.totalPages}`);
+      console.log(`   ✅ Found ${response.data.length} electronics products via TCP`);
     } catch (error) {
-      console.log('   ❌ Failed to search with filters:', error.response?.data?.message || error.message);
+      console.log('   ❌ Failed to search by category:', error.response?.data?.message || error.message);
     }
 
-    // Test 3: Search by date range via TCP
-    console.log('\n3. Searching by date range via TCP...');
+    // Test 3: Search with name filter via TCP
+    console.log('\n3. Searching products by name via TCP...');
     try {
-      const response = await axios.get(`${QUERY_SERVICE_URL}/product-query/date-range`, {
+      const response = await axios.get(`${QUERY_SERVICE_URL}/product-query/search`, {
+        params: {
+          name: 'iPhone'
+        }
+      });
+      console.log(`   ✅ Found ${response.data.length} products matching "iPhone" via TCP`);
+    } catch (error) {
+      console.log('   ❌ Failed to search by name:', error.response?.data?.message || error.message);
+    }
+
+    // Test 4: Search with date range via TCP
+    console.log('\n4. Searching products by date range via TCP...');
+    try {
+      const response = await axios.get(`${QUERY_SERVICE_URL}/product-query/search`, {
         params: {
           startDate: '2024-01-01T00:00:00.000Z',
           endDate: '2024-12-31T23:59:59.999Z'
         }
       });
-      console.log(`   ✅ Found ${response.data.length} products in date range`);
+      console.log(`   ✅ Found ${response.data.length} products in date range via TCP`);
     } catch (error) {
       console.log('   ❌ Failed to search by date range:', error.response?.data?.message || error.message);
     }
 
-    // Test 4: Search by text via TCP
-    console.log('\n4. Searching by text via TCP...');
-    try {
-      const response = await axios.get(`${QUERY_SERVICE_URL}/product-query/text-search`, {
-        params: {
-          q: 'iPhone'
-        }
-      });
-      console.log(`   ✅ Found ${response.data.length} products matching text search`);
-    } catch (error) {
-      console.log('   ❌ Failed to search by text:', error.response?.data?.message || error.message);
-    }
-
-    // Test 5: Test pagination
-    console.log('\n5. Testing pagination...');
+    // Test 5: Combined search via TCP
+    console.log('\n5. Combined search (category + name + date) via TCP...');
     try {
       const response = await axios.get(`${QUERY_SERVICE_URL}/product-query/search`, {
         params: {
-          page: 1,
-          limit: 2
+          category: 'electronics',
+          name: 'iPhone',
+          startDate: '2024-01-01T00:00:00.000Z',
+          endDate: '2024-12-31T23:59:59.999Z'
         }
       });
-      console.log(`   ✅ Page 1: ${response.data.data.length} products`);
-      console.log(`   📊 Total: ${response.data.total}, Pages: ${response.data.totalPages}`);
-      console.log(`   🔗 Has Next: ${response.data.hasNext}, Has Prev: ${response.data.hasPrev}`);
+      console.log(`   ✅ Found ${response.data.length} products with combined filters via TCP`);
     } catch (error) {
-      console.log('   ❌ Failed to test pagination:', error.response?.data?.message || error.message);
+      console.log('   ❌ Failed to search with combined filters:', error.response?.data?.message || error.message);
     }
 
   } catch (error) {
@@ -182,7 +188,7 @@ async function testQueryServiceTCP() {
 }
 
 async function runTests() {
-  console.log('🚀 Starting TCP Communication Tests...\n');
+  console.log('🚀 Starting Simplified TCP Communication Tests...\n');
   
   // Wait for services to be ready
   await new Promise(resolve => setTimeout(resolve, 3000));
@@ -190,7 +196,7 @@ async function runTests() {
   await testProductService();
   await testQueryServiceTCP();
   
-  console.log('\n✅ TCP Communication Tests completed!');
+  console.log('\n✅ Simplified TCP Communication Tests completed!');
   console.log('\n📋 Service URLs:');
   console.log(`   Product Service (M1): ${PRODUCT_SERVICE_URL}`);
   console.log(`   Query Service (M2): ${QUERY_SERVICE_URL}`);
@@ -198,6 +204,14 @@ async function runTests() {
   console.log(`   Query Service Swagger: ${QUERY_SERVICE_URL}/docs`);
   console.log('\n🔌 TCP Communication:');
   console.log('   M2 (Query Service) → TCP → M1 (Product Service) on port 3002');
+  console.log('\n📝 Available Endpoints:');
+  console.log('   Product Service:');
+  console.log('     POST /api/products - Create product');
+  console.log('     GET /api/products - Get all products');
+  console.log('     GET /api/products/search - Search by category, name, date range');
+  console.log('   Query Service (via TCP):');
+  console.log('     GET /api/product-query - Get all products');
+  console.log('     GET /api/product-query/search - Search by category, name, date range');
 }
 
 // Run tests

@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, HttpException, HttpStatus, Query } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiQuery } from '@nestjs/swagger';
 import { ProductService } from '../services/product.service';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { Product } from '../schemas/product.schema';
@@ -60,49 +60,81 @@ export class ProductController {
     }
   }
 
+  @Get('search')
+  @ApiOperation({ summary: 'Search products by category, name, and date range' })
+  @ApiResponse({ status: 200, description: 'Products found successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  @ApiQuery({ name: 'category', required: false, description: 'Product category' })
+  @ApiQuery({ name: 'name', required: false, description: 'Search by product name, description, or brand' })
+  @ApiQuery({ name: 'startDate', required: false, description: 'Start date (ISO string)' })
+  @ApiQuery({ name: 'endDate', required: false, description: 'End date (ISO string)' })
+  async searchByFilters(
+    @Query('category') category?: string,
+    @Query('name') name?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string
+  ): Promise<Product[]> {
+    try {
+      return await this.productService.searchByFilters({
+        category,
+        name,
+        startDate,
+        endDate
+      });
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error.message || 'Failed to search products',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
   // TCP Message Handlers for microservice communication
   @MessagePattern({ cmd: 'get_all_products' })
   async getAllProducts(): Promise<Product[]> {
-    return this.productService.findAll();
+    console.log('🔍 Product Service: Received TCP request for get_all_products');
+    try {
+      const result = await this.productService.findAll();
+      console.log(`✅ Product Service: Returning ${result.length} products via TCP`);
+      return result;
+    } catch (error) {
+      console.error('❌ Product Service: Error in get_all_products TCP handler:', error);
+      throw error;
+    }
   }
 
-  @MessagePattern({ cmd: 'get_products_with_filters' })
-  async getProductsWithFilters(@Payload() filters: {
-    search?: string;
+  @MessagePattern({ cmd: 'search_products' })
+  async searchProducts(@Payload() filters: {
+    category?: string;
+    name?: string;
     startDate?: string;
     endDate?: string;
-    category?: string;
-    brand?: string;
-    status?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    isFeatured?: boolean;
-    page?: number;
-    limit?: number;
-  }): Promise<{
-    data: Product[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  }> {
-    return this.productService.findAllWithFilters(filters);
-  }
-
-  @MessagePattern({ cmd: 'search_by_date_range' })
-  async searchByDateRange(@Payload() data: { startDate: string; endDate: string }): Promise<Product[]> {
-    return this.productService.searchByDateRange(data.startDate, data.endDate);
-  }
-
-  @MessagePattern({ cmd: 'search_by_text' })
-  async searchByText(@Payload() data: { searchTerm: string }): Promise<Product[]> {
-    return this.productService.searchByText(data.searchTerm);
+  }): Promise<Product[]> {
+    console.log('🔍 Product Service: Received TCP request for search_products with filters:', filters);
+    try {
+      const result = await this.productService.searchByFilters(filters);
+      console.log(`✅ Product Service: Returning ${result.length} products via TCP search`);
+      return result;
+    } catch (error) {
+      console.error('❌ Product Service: Error in search_products TCP handler:', error);
+      throw error;
+    }
   }
 
   @MessagePattern({ cmd: 'create_product' })
   async createProduct(@Payload() createProductDto: CreateProductDto): Promise<Product> {
-    return this.productService.create(createProductDto);
+    console.log('🔍 Product Service: Received TCP request for create_product');
+    try {
+      const result = await this.productService.create(createProductDto);
+      console.log('✅ Product Service: Product created successfully via TCP');
+      return result;
+    } catch (error) {
+      console.error('❌ Product Service: Error in create_product TCP handler:', error);
+      throw error;
+    }
   }
-} 
+}

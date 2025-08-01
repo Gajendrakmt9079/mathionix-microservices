@@ -101,117 +101,39 @@ let ProductService = class ProductService {
             throw new common_1.BadRequestException('Failed to fetch products: ' + error.message);
         }
     }
-    async findAllWithFilters(filters) {
+    async searchByFilters(filters) {
         try {
             const query = {};
-            if (filters.search) {
-                query.$or = [
-                    { name: { $regex: filters.search, $options: 'i' } },
-                    { description: { $regex: filters.search, $options: 'i' } },
-                    { brand: { $regex: filters.search, $options: 'i' } },
-                    { sku: { $regex: filters.search, $options: 'i' } },
-                    { tags: { $in: [new RegExp(filters.search, 'i')] } }
-                ];
-            }
             if (filters.category) {
                 query.category = filters.category;
             }
-            if (filters.brand) {
-                query.brand = { $regex: filters.brand, $options: 'i' };
-            }
-            if (filters.status) {
-                query.status = filters.status;
-            }
-            if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
-                query.price = {};
-                if (filters.minPrice !== undefined) {
-                    query.price.$gte = filters.minPrice;
-                }
-                if (filters.maxPrice !== undefined) {
-                    query.price.$lte = filters.maxPrice;
-                }
-            }
-            if (filters.isFeatured !== undefined) {
-                query.isFeatured = filters.isFeatured;
+            if (filters.name) {
+                query.$or = [
+                    { name: { $regex: filters.name, $options: 'i' } },
+                    { description: { $regex: filters.name, $options: 'i' } },
+                    { brand: { $regex: filters.name, $options: 'i' } }
+                ];
             }
             if (filters.startDate || filters.endDate) {
-                query.createdAt = {};
+                query.$and = [];
                 if (filters.startDate) {
-                    query.createdAt.$gte = new Date(filters.startDate);
+                    query.$and.push({
+                        $or: [
+                            { createdAt: { $gte: new Date(filters.startDate) } },
+                            { releaseDate: { $gte: new Date(filters.startDate) } }
+                        ]
+                    });
                 }
                 if (filters.endDate) {
-                    query.createdAt.$lte = new Date(filters.endDate);
+                    query.$and.push({
+                        $or: [
+                            { createdAt: { $lte: new Date(filters.endDate) } },
+                            { releaseDate: { $lte: new Date(filters.endDate) } }
+                        ]
+                    });
                 }
             }
-            if (filters.startDate || filters.endDate) {
-                query.releaseDate = {};
-                if (filters.startDate) {
-                    query.releaseDate.$gte = new Date(filters.startDate);
-                }
-                if (filters.endDate) {
-                    query.releaseDate.$lte = new Date(filters.endDate);
-                }
-            }
-            const page = filters.page || 1;
-            const limit = filters.limit || 10;
-            const skip = (page - 1) * limit;
-            const [products, total] = await Promise.all([
-                this.productModel.find(query).skip(skip).limit(limit).exec(),
-                this.productModel.countDocuments(query).exec()
-            ]);
-            const totalPages = Math.ceil(total / limit);
-            return {
-                data: products,
-                total,
-                page,
-                limit,
-                totalPages,
-                hasNext: page < totalPages,
-                hasPrev: page > 1,
-            };
-        }
-        catch (error) {
-            throw new common_1.BadRequestException('Failed to fetch products with filters: ' + error.message);
-        }
-    }
-    async searchByDateRange(startDate, endDate) {
-        try {
-            if (!startDate || !endDate) {
-                throw new common_1.BadRequestException('Both start date and end date are required');
-            }
-            const start = new Date(startDate);
-            const end = new Date(endDate);
-            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-                throw new common_1.BadRequestException('Invalid date format');
-            }
-            if (start > end) {
-                throw new common_1.BadRequestException('Start date must be before end date');
-            }
-            return await this.productModel.find({
-                $or: [
-                    { createdAt: { $gte: start, $lte: end } },
-                    { releaseDate: { $gte: start, $lte: end } }
-                ]
-            }).exec();
-        }
-        catch (error) {
-            throw new common_1.BadRequestException('Failed to search by date range: ' + error.message);
-        }
-    }
-    async searchByText(searchTerm) {
-        try {
-            if (!searchTerm || searchTerm.trim().length === 0) {
-                throw new common_1.BadRequestException('Search term is required');
-            }
-            return await this.productModel.find({
-                $or: [
-                    { name: { $regex: searchTerm, $options: 'i' } },
-                    { description: { $regex: searchTerm, $options: 'i' } },
-                    { brand: { $regex: searchTerm, $options: 'i' } },
-                    { sku: { $regex: searchTerm, $options: 'i' } },
-                    { tags: { $in: [new RegExp(searchTerm, 'i')] } }
-                ]
-            }).exec();
+            return await this.productModel.find(query).exec();
         }
         catch (error) {
             throw new common_1.BadRequestException('Failed to search products: ' + error.message);
